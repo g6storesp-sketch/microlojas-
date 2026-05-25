@@ -342,7 +342,6 @@
     padding:11px 18px; border-radius:12px; border:none; cursor:pointer;
   }
   .b-csv{ background:var(--azul); color:#fff; }
-  .b-limpar{ background:#fff; color:var(--coral); border:2px solid var(--coral)!important; }
   .contador{ font-size:13px; color:var(--texto-suave); font-weight:700; margin-bottom:12px; }
 
   /* rodapé global */
@@ -535,33 +534,6 @@
     <div class="rodape">
       <img id="logoRodape" alt="Tip Top" />
       <p class="slogan">gostoso de viver junto</p>
-    </div>
-  </div>
-
-  <div class="admin-link" id="adminBtn">📋 Lojas inscritas</div>
-
-  <!-- MODAL ADMIN -->
-  <div class="modal" id="modal">
-    <div class="modal-card">
-      <div class="modal-head">
-        <h3>📋 Lojas inscritas na Microloja</h3>
-        <span class="x" id="fecharModal">×</span>
-      </div>
-      <div class="modal-body">
-        <div class="contador" id="contador">0 lojas inscritas</div>
-        <div id="tabelaWrap">
-          <table>
-            <thead>
-              <tr><th>#</th><th>Loja</th><th>CNPJ</th><th>WhatsApp</th><th>E-mail</th><th>URL</th><th>Data</th></tr>
-            </thead>
-            <tbody id="tbody"></tbody>
-          </table>
-        </div>
-        <div class="acoes-admin">
-          <button class="b-csv" id="btnCsv">⬇️ Baixar lista (CSV)</button>
-          <button class="b-limpar" id="btnLimpar">🗑️ Limpar lista</button>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -776,58 +748,6 @@ document.getElementById('btnNovo').addEventListener('click', ()=>{
   document.getElementById('sucesso-view').classList.remove('show');
   document.getElementById('form-view').style.display='block';
   window.scrollTo({top:0, behavior:'smooth'});
-});
-
-/* ====== Admin ====== */
-const modal = document.getElementById('modal');
-document.getElementById('adminBtn').addEventListener('click', async ()=>{
-  await renderTabela();
-  modal.classList.add('show');
-});
-document.getElementById('fecharModal').addEventListener('click', ()=> modal.classList.remove('show'));
-modal.addEventListener('click', (e)=>{ if(e.target===modal) modal.classList.remove('show'); });
-
-async function renderTabela(){
-  const lista = await carregar();
-  const tb = document.getElementById('tbody');
-  document.getElementById('contador').textContent =
-    lista.length + (lista.length===1?' loja inscrita':' lojas inscritas');
-  if(lista.length===0){
-    tb.innerHTML = '<tr><td colspan="7"><div class="vazio">Nenhuma loja inscrita ainda. 🎈</div></td></tr>';
-    return;
-  }
-  tb.innerHTML = lista.map((r,i)=>`
-    <tr>
-      <td>${i+1}</td>
-      <td><b>${esc(r.nome)}</b></td>
-      <td>${esc(r.cnpj)}</td>
-      <td>${esc(r.tel)}</td>
-      <td>${esc(r.email||'—')}</td>
-      <td>${esc(r.url)}</td>
-      <td>${esc(r.data)}</td>
-    </tr>`).join('');
-}
-function esc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-
-document.getElementById('btnCsv').addEventListener('click', async ()=>{
-  const lista = await carregar();
-  if(lista.length===0){ alert('Ainda não há lojas inscritas.'); return; }
-  const cab = ['Nome fantasia','CNPJ','WhatsApp','E-mail','URL da microloja','Data'];
-  const linhas = lista.map(r=>[r.nome,r.cnpj,r.tel,r.email||'',r.url,r.data]
-      .map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
-  const csv = '\uFEFF'+[cab.join(','),...linhas].join('\n');
-  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'microlojas_tiptop.csv';
-  a.click();
-});
-
-document.getElementById('btnLimpar').addEventListener('click', async ()=>{
-  if(confirm('Tem certeza que deseja limpar toda a lista de lojas inscritas?')){
-    await salvar([]);
-    await renderTabela();
-  }
 });
 </script>
 </body>
